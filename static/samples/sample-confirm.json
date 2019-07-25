@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "message": "OK",
+  "validationErrors": [],
+  "params": {
+    "name": "Koseki",
+    "email": "koseki@example.com",
+    "title": "Dummy Response",
+    "message": "This is\nDUMMY\nmessage!"
+  }
+}

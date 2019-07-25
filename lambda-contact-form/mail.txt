@@ -1,0 +1,9 @@
+Sample mail from contact form
+
+Hi {{name}}!
+We recieved your inquiry.
+
+Name: {{name}}
+Title: {{title}}
+Message:
+{{message}}

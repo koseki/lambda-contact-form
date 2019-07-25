@@ -1,3 +1,4 @@
+const axios = require('axios');
 const AWS = require('aws-sdk');
 AWS.config.update({region: process.env.AWS_REGION});
 
@@ -50,35 +51,120 @@ const sesSendEmail = async (email) => {
   return data;
 };
 
-let response;
+const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify';
+const verifyRecaptcha = async (token, ip) => {
+  const verificationRequest = {
+    response: token,
+    remoteip: ip,
+    secret: RECAPTCHA_SECRET_KEY,
+  };
+  const resp = await axios.post(RECAPTCHA_URL, verificationRequest);
+  return resp.data;
+}
 
-const jsonCorsResponseHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Content-Type': 'application/json'
+const form = require('./form');
+
+let response;
+const buildResponse = (statusCode, status, data = {}) => {
+  let corsOrigin = process.env.CORS_ORIGIN;
+  corsOrigin = corsOrigin ? corsOrigin : '*';
+  const jsonCorsResponseHeaders = {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Content-Type': 'application/json'
+  };
+
+  let obj = {
+    statusCode: statusCode,
+    status: status,
+    data: form.loggableData(data)
+  }
+  console.log(obj);
+
+  let returnData = Object.assign({}, data);
+  delete returnData.ext;
+  obj.data = returnData;
+
+  return {
+    statusCode: statusCode,
+    headers: jsonCorsResponseHeaders,
+    body: JSON.stringify(obj)
+  };
 };
 
-exports.lambdaHandler = async (event, context) => {
-  try {
-    let email = {
-      from: process.env.EMAIL_FROM,
-      to: process.env.EMAIL_TO.split(/\s*,\s*/),
-      subject: 'SES Trial',
-      body: 'test'
-    };
-    await sesSendEmail(email);
-    response = {
-      'statusCode': 200,
-      'headers': jsonCorsResponseHeaders,
-      'body': JSON.stringify({ message: 'OK' })
-    };
-  } catch (err) {
+const logError = (err) => {
+  if (err.stack) {
+    console.log(err.stack);
+  } else {
     console.log(err);
-    response = {
-      'statusCode': 500,
-      'headers': jsonCorsResponseHeaders,
-      'body': JSON.stringify({ message: 'ERROR' })
-    };
+  }
+}
+
+exports.lambdaHandler = async (event, context) => {
+  if (event.body && event.body.length > 3000000) {
+    return buildResponse(400, 'request_too_large');
   }
 
-  return response
+  let rawParams;
+  try {
+    rawParams = JSON.parse(event.body);
+  } catch (err) {
+    logError(err);
+    console.log(event.body);
+    return buildResponse(400, 'request_parse_error');
+  }
+
+  let data;
+  try {
+    data = form.normalizeAndValidate(rawParams);
+  } catch (err) {
+    logError(err);
+    console.log(event.body);
+    return buildResponse(500, 'internal_error');
+  }
+
+  if (data.errors.length > 0) {
+    return buildResponse(400, 'validation_error', data);
+  }
+
+  if (data.params.action == 'validate') {
+    return buildResponse(200, 'validated', data);
+  }
+
+  if (process.env.RECAPTCHA_SECRET_KEY) {
+    try {
+      let recaptcha = verifyRecaptcha(data.ext.recaptcha, context.sourceIp)
+      if (!recaptcha.success) {
+        return buildResponse(400, 'recaptcha_verification_error', data);
+      }
+    } catch (err) {
+      logError(err);
+      return buildResponse(500, 'recaptcha_error', data);
+    }
+  }
+
+  try {
+    let adminMail = await form.buildAdminMail(data);
+    if (process.env.DEBUG) {
+      data.adminMail = adminMail;
+    }
+    await sesSendEmail(adminMail);
+  } catch (err) {
+    logError(err);
+    return buildResponse(500, 'internal_error', data);
+  }
+
+  try {
+    let userMail = await form.buildUserMail(data);
+    if (process.env.DEBUG) {
+      data.userMail = userMail;
+    }
+    if (userMail) {
+      await sesSendEmail(userMail);
+    }
+  } catch (err) {
+    logError(err);
+    return buildResponse(500, 'internal_error', data);
+  }
+
+  return buildResponse(200, 'sent', data);
 };

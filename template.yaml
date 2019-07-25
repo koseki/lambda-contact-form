@@ -44,7 +44,11 @@ Resources:
           SES_REGION: us-east-1
           SEND_MAIL_MOCK: 0
           SES_ACCESS_KEY_ID: "use Role"
-          SEs_ACCeSS_KEY_SECRET: "use Role"
+          SES_ACCESS_KEY_SECRET: "encrypted value"
+          EMAIL_FROM: "test@example.com"
+          EMAIL_TO: "test2@example.com"
+          CORS_ORIGIN: "*"
+          DEBUG: false
 
 Outputs:
   LambdaContactFormPostApi:

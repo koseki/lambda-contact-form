@@ -11,6 +11,7 @@ DIR=$(dirname $0)
 cd $DIR
 source config
 cd ..
+ABSPATH=$(pwd)
 
 sam build
-sam local start-api --env-vars env.json
+sam local start-api --env-vars env.json --static-dir $ABSPATH/static
