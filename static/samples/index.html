@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <title>Sample</title>
+  <script src="config.js"></script>
   <script>
     function showValidationErrors(data) {
       var messages = {
@@ -95,10 +96,10 @@
       data.action = action;
 
       var request = new XMLHttpRequest();
-      // request.open('GET', '/samples/sample-validation.json', true);
-      // request.open('GET', '/samples/sample-confirm.json', true);
-      request.open('POST', '/post', true);
-      request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+      request.open(apiMethod, apiURL, true);
+
+      // Content-Type requires CORS.
+      // request.setRequestHeader('Content-Type', 'application/json');
 
       request.onload = function() {
         var result = parseJSON(this.response);
