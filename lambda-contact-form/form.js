@@ -47,7 +47,7 @@ exports.buildUserMail = async (data) => {
   let mail = await fu.renderMailTemplate('mail.txt', data.params);
   let email = {
     from: process.env.EMAIL_FROM,
-    to: data.params['email'],
+    to: [data.params['email']],
     subject: mail.subject,
     body: mail.body
   };

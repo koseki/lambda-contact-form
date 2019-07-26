@@ -1,6 +1,6 @@
 const axios = require('axios');
 const AWS = require('aws-sdk');
-AWS.config.update({region: process.env.AWS_REGION});
+AWS.config.update({region: process.env.APP_AWS_REGION});
 
 const kms = new AWS.KMS({apiVersion: '2014-11-01'});
 
@@ -126,7 +126,7 @@ exports.lambdaHandler = async (event, context) => {
     return buildResponse(400, 'validation_error', data);
   }
 
-  if (data.params.action == 'validate') {
+  if (rawParams.action != 'send') {
     return buildResponse(200, 'validated', data);
   }
 
