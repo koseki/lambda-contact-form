@@ -14,4 +14,6 @@ cd ..
 ABSPATH=$(pwd)
 
 sam build
-sam local start-api --env-vars env.json --static-dir $ABSPATH/static
+
+sam local start-api --env-vars env.json --static-dir $ABSPATH/static 2>&1 \
+    | tr '\r' '\n' # Replace from CR to LF. The CR breaks console.log() output.
