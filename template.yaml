@@ -48,6 +48,7 @@ Resources:
           EMAIL_FROM: "test@example.com"
           EMAIL_TO: "test2@example.com"
           CORS_ORIGIN: "*"
+          RECAPTCHA_SECRET_KEY: "(leave empty to skip reCAPTCHA verification)"
           DEBUG: false
 
 Outputs:

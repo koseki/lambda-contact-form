@@ -1,4 +1,5 @@
 const axios = require('axios');
+const querystring = require('querystring')
 const AWS = require('aws-sdk');
 AWS.config.update({region: process.env.APP_AWS_REGION});
 
@@ -56,9 +57,9 @@ const verifyRecaptcha = async (token, ip) => {
   const verificationRequest = {
     response: token,
     remoteip: ip,
-    secret: RECAPTCHA_SECRET_KEY,
+    secret: process.env.RECAPTCHA_SECRET_KEY,
   };
-  const resp = await axios.post(RECAPTCHA_URL, verificationRequest);
+  const resp = await axios.post(RECAPTCHA_URL, querystring.stringify(verificationRequest));
   return resp.data;
 }
 
@@ -100,7 +101,7 @@ const logError = (err) => {
 }
 
 exports.lambdaHandler = async (event, context) => {
-  if (event.body && event.body.length > 3000000) {
+  if (event.body && event.body.length > 1000000) {
     return buildResponse(400, 'request_too_large');
   }
 
@@ -132,7 +133,8 @@ exports.lambdaHandler = async (event, context) => {
 
   if (process.env.RECAPTCHA_SECRET_KEY) {
     try {
-      let recaptcha = verifyRecaptcha(data.ext.recaptcha, context.sourceIp)
+      let sourceIp = event.requestContext.identity.sourceIp;
+      let recaptcha = await verifyRecaptcha(data.ext.recaptcha, sourceIp);
       if (!recaptcha.success) {
         return buildResponse(400, 'recaptcha_verification_error', data);
       }
