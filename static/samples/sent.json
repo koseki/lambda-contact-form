@@ -1,0 +1,13 @@
+{
+  "statusCode": 200,
+  "status": "sent",
+  "data": {
+    "errors": [],
+    "params": {
+      "name": "Koseki",
+      "email": "koseki@example.com",
+      "title": "Dummy Response",
+      "message": "This is\nDUMMY\nmessage!"
+    }
+  }
+}
