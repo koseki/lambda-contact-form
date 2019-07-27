@@ -1,9 +1,9 @@
 const axios = require('axios');
-const querystring = require('querystring')
+const querystring = require('querystring');
 const AWS = require('aws-sdk');
-AWS.config.update({region: process.env.APP_AWS_REGION});
+AWS.config.update({ region: process.env.APP_AWS_REGION });
 
-const kms = new AWS.KMS({apiVersion: '2014-11-01'});
+const kms = new AWS.KMS({ apiVersion: '2014-11-01' });
 
 let decryptedEnv = {};
 const decryptEnv = async (name) => {
@@ -45,7 +45,7 @@ const sesSendEmail = async (email) => {
     Destination: { ToAddresses: email.to },
     Message: {
       Subject: { Data: email.subject, Charset: 'UTF-8' },
-      Body: { Text: { Data: email.body, Charset: 'UTF-8' }}
+      Body: { Text: { Data: email.body, Charset: 'UTF-8' } }
     }
   };
   let data = await ses.sendEmail(sesMail).promise();
@@ -57,18 +57,18 @@ const verifyRecaptcha = async (token, ip) => {
   const verificationRequest = {
     response: token,
     remoteip: ip,
-    secret: process.env.RECAPTCHA_SECRET_KEY,
+    secret: process.env.RECAPTCHA_SECRET_KEY
   };
   const resp = await axios.post(RECAPTCHA_URL, querystring.stringify(verificationRequest));
   return resp.data;
-}
+};
 
 const form = require('./form');
 
 let response;
 const buildResponse = (statusCode, status, data = {}) => {
   let corsOrigin = process.env.CORS_ORIGIN;
-  corsOrigin = corsOrigin ? corsOrigin : '*';
+  corsOrigin = corsOrigin || '*';
   const jsonCorsResponseHeaders = {
     'Access-Control-Allow-Origin': corsOrigin,
     'Content-Type': 'application/json'
@@ -78,7 +78,7 @@ const buildResponse = (statusCode, status, data = {}) => {
     statusCode: statusCode,
     status: status,
     data: form.loggableData(data)
-  }
+  };
   console.log(obj);
 
   let returnData = Object.assign({}, data);
@@ -98,7 +98,7 @@ const logError = (err) => {
   } else {
     console.log(err);
   }
-}
+};
 
 exports.lambdaHandler = async (event, context) => {
   if (event.body && event.body.length > 1000000) {
