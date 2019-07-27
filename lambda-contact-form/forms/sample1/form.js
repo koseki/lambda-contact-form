@@ -1,6 +1,17 @@
 const crypto = require('crypto');
 const fu = require('./utils')
 
+export formConfig = {
+  staging: {
+    MAIL_FROM: '',
+    MAIL_TO: '',
+  },
+  production: {
+    MAIL_FROM: '',
+    MAIL_TO: '',
+  }
+};
+
 exports.normalizeAndValidate = (params) => {
   let result = {
     errors: [],
