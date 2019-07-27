@@ -1,14 +1,14 @@
 const crypto = require('crypto');
-const fu = require('./utils')
+const fu = require('./utils');
 
-export formConfig = {
+export const formConfig = {
   staging: {
     MAIL_FROM: '',
-    MAIL_TO: '',
+    MAIL_TO: ''
   },
   production: {
     MAIL_FROM: '',
-    MAIL_TO: '',
+    MAIL_TO: ''
   }
 };
 
@@ -17,7 +17,7 @@ exports.normalizeAndValidate = (params) => {
     errors: [],
     params: {},
     ext: {}
-  }
+  };
   result.ext.recaptcha = params['g-recaptcha-response'];
 
   let name = fu.stringValue(params, 'name', true);
@@ -49,7 +49,7 @@ exports.normalizeAndValidate = (params) => {
   fu.validateLength(result, 'message', 1, 50000);
 
   return result;
-}
+};
 
 /**
  * Return false if you don't need to send mail to the user.
@@ -63,7 +63,7 @@ exports.buildUserMail = async (data) => {
     body: mail.body
   };
   return email;
-}
+};
 
 exports.buildAdminMail = async (data) => {
   let mail = await fu.renderMailTemplate('mail.txt', data.params);
@@ -74,7 +74,7 @@ exports.buildAdminMail = async (data) => {
     body: mail.body
   };
   return email;
-}
+};
 
 exports.loggableData = (data) => {
   let result = {};
@@ -84,4 +84,4 @@ exports.loggableData = (data) => {
   }
 
   return result;
-}
+};

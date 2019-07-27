@@ -23,7 +23,7 @@ const decryptEnv = async (name) => {
 };
 
 const sesSendEmail = async (email) => {
-  if (process.env.SEND_MAIL_MOCK == 1) {
+  if (process.env.SEND_MAIL_MOCK === 'true') {
     console.log(email);
     return;
   }
@@ -65,7 +65,6 @@ const verifyRecaptcha = async (token, ip) => {
 
 const form = require('./form');
 
-let response;
 const buildResponse = (statusCode, status, data = {}) => {
   let corsOrigin = process.env.CORS_ORIGIN;
   corsOrigin = corsOrigin || '*';
@@ -127,7 +126,7 @@ exports.lambdaHandler = async (event, context) => {
     return buildResponse(400, 'validation_error', data);
   }
 
-  if (rawParams.action != 'send') {
+  if (rawParams.action !== 'send') {
     return buildResponse(200, 'validated', data);
   }
 

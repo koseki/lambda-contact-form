@@ -7,7 +7,7 @@ const _self = module.exports;
 exports.validateLength = (result, name, min, max) => {
   let value = result.params[name];
 
-  if (min >= 0 && value.length == 0) {
+  if (min >= 0 && value.length === 0) {
     result.errors.push({ field: name, type: 'required' });
     return false;
   } else if (min >= 0 && value.length < min) {
@@ -33,7 +33,8 @@ exports.validateEmail = (result, name, required, max) => {
 
   // Using type=email regexp and changed the last '*' to '+'. Domain must include '.'.
   // https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address
-  const emailRex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+  const emailRex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/; // eslint-disable-line
+
   if (!email.match(emailRex)) {
     result.errors.push({ field: name, type: 'email' });
     return false;
