@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; /* global describe, it */
 
 const app = require('../../app.js');
 const chai = require('chai');
