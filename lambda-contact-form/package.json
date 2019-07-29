@@ -10,7 +10,7 @@
     "axios": "^0.18.0"
   },
   "scripts": {
-    "test": "mocha tests/unit/"
+    "test": "npx semistandard && STAGE=test mocha tests/unit/"
   },
   "devDependencies": {
     "aws-sdk": "^2.501.0",

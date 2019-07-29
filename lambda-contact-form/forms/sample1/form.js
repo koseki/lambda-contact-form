@@ -1,23 +1,26 @@
 const crypto = require('crypto');
-const fu = require('./utils');
+const path = require('path');
+const fu = require('../../utils');
 
-export const formConfig = {
-  staging: {
-    MAIL_FROM: '',
-    MAIL_TO: ''
-  },
-  production: {
-    MAIL_FROM: '',
-    MAIL_TO: ''
-  }
+let config = {};
+exports.updateConfig = (_config) => {
+  config = Object.assign(config, _config);
 };
 
 exports.normalizeAndValidate = (params) => {
   let result = {
     errors: [],
-    params: {},
-    ext: {}
+    params: {
+      name: '',
+      email: '',
+      title: '',
+      message: ''
+    },
+    ext: {
+      recaptcha: ''
+    }
   };
+
   result.ext.recaptcha = params['g-recaptcha-response'];
 
   let name = fu.stringValue(params, 'name', true);
@@ -55,9 +58,10 @@ exports.normalizeAndValidate = (params) => {
  * Return false if you don't need to send mail to the user.
  */
 exports.buildUserMail = async (data) => {
-  let mail = await fu.renderMailTemplate('mail.txt', data.params);
+  const templateFile = path.join(__dirname, 'mail.txt');
+  let mail = await fu.renderMailTemplate(templateFile, data.params);
   let email = {
-    from: process.env.EMAIL_FROM,
+    from: config.mailFrom,
     to: [data.params['email']],
     subject: mail.subject,
     body: mail.body
@@ -66,10 +70,16 @@ exports.buildUserMail = async (data) => {
 };
 
 exports.buildAdminMail = async (data) => {
-  let mail = await fu.renderMailTemplate('mail.txt', data.params);
+  const templateFile = path.join(__dirname, 'mail.txt');
+  let mail = await fu.renderMailTemplate(templateFile, data.params);
+  let mailTo = config.mailTo;
+  if (typeof mailTo === 'string') {
+    mailTo = [mailTo];
+  }
+
   let email = {
-    from: process.env.EMAIL_FROM,
-    to: process.env.EMAIL_TO.split(/\s*,\s*/),
+    from: config.mailFrom,
+    to: config.mailTo,
     subject: mail.subject,
     body: mail.body
   };

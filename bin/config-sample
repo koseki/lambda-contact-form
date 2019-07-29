@@ -1,0 +1,7 @@
+AWS_DEFAULT_REGION=ap-northeast-1
+AWS_DEFAULT_PROFILE=default
+
+PROJECT_NAME=lambda-contact-form
+PROJECT_NAME_STAGING=lambda-contact-form-staging
+
+S3_BUCKET_NAME=your-s3-bucket-name

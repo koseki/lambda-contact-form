@@ -1,7 +1,7 @@
 const axios = require('axios');
 const querystring = require('querystring');
 const AWS = require('aws-sdk');
-AWS.config.update({ region: process.env.APP_AWS_REGION });
+AWS.config.update({ region: process.env.AWS_REGION });
 
 const kms = new AWS.KMS({ apiVersion: '2014-11-01' });
 
@@ -22,8 +22,12 @@ const decryptEnv = async (name) => {
   return decrypted;
 };
 
+const isMockMail = () => {
+  return (process.env.MOCK_MAIL === 'true' || formConfig.mockMail);
+};
+
 const sesSendEmail = async (email) => {
-  if (process.env.SEND_MAIL_MOCK === 'true') {
+  if (isMockMail()) {
     console.log(email);
     return;
   }
@@ -63,7 +67,7 @@ const verifyRecaptcha = async (token, ip) => {
   return resp.data;
 };
 
-const form = require('./form');
+let form = null;
 
 const buildResponse = (statusCode, status, data = {}) => {
   let corsOrigin = process.env.CORS_ORIGIN;
@@ -76,8 +80,11 @@ const buildResponse = (statusCode, status, data = {}) => {
   let obj = {
     statusCode: statusCode,
     status: status,
-    data: form.loggableData(data)
+    data: {}
   };
+  if (form) {
+    obj.data = form.loggableData(data);
+  }
   console.log(obj);
 
   let returnData = Object.assign({}, data);
@@ -99,10 +106,30 @@ const logError = (err) => {
   }
 };
 
+const stage = process.env.STAGE;
+const config = require(`./config-${stage}`)[stage];
+let formConfig = null;
+
 exports.lambdaHandler = async (event, context) => {
   if (event.body && event.body.length > 1000000) {
     return buildResponse(400, 'request_too_large');
   }
+
+  let formName = null;
+  if (event.pathParameters && event.pathParameters.formName) {
+    formName = event.pathParameters.formName;
+  } else {
+    console.log(event.pathParameters);
+    return buildResponse(500, 'internal_error');
+  }
+
+  formConfig = config.forms[formName];
+  if (!formConfig) {
+    return buildResponse(400, 'invalid_arguments');
+  }
+  form = require(formConfig.path);
+  form.updateConfig(formConfig);
+  form.updateConfig({ stage: stage });
 
   let rawParams;
   try {
@@ -145,7 +172,7 @@ exports.lambdaHandler = async (event, context) => {
 
   try {
     let adminMail = await form.buildAdminMail(data);
-    if (process.env.DEBUG) {
+    if (isMockMail()) {
       data.adminMail = adminMail;
     }
     await sesSendEmail(adminMail);
@@ -156,7 +183,7 @@ exports.lambdaHandler = async (event, context) => {
 
   try {
     let userMail = await form.buildUserMail(data);
-    if (process.env.DEBUG) {
+    if (isMockMail()) {
       data.userMail = userMail;
     }
     if (userMail) {

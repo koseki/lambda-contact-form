@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { promisify } = require('util');
 
 const _self = module.exports;
@@ -62,8 +61,7 @@ exports.toOneLine = (str) => {
   return str.trim();
 };
 
-exports.renderMailTemplate = async (template, params) => {
-  const templateFile = path.join(__dirname, template);
+exports.renderMailTemplate = async (templateFile, params) => {
   const out = await promisify(fs.readFile)(templateFile, 'utf-8');
   const text = out.replace(/\{\{([-a-zA-Z0-9_]+)\}\}/g, (match, p1) => {
     return params[p1];
